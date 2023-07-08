@@ -1,0 +1,223 @@
+Regras de entrega
+-----------------
+
+O mesmo de sempre:
+
+1) Entregue um arquivo ZIP chamado NomeSobrenome.zip, ou NomeNome.zip caso seja em dupla. (Não use RAR)
+2) Em todos os arquivos de código, insira um comentário no topo com o seu nome completo.
+3) Inclua um arquivo README explicando como rodar o programa
+4) Se você não conseguir terminar tudo a tempo, é melhor entregar pela metade do que não entregar. Na hora que entregar, escreva um comentário no Google Classroom explicando o que faltou fazer.
+
+
+Tarefa
+------
+
+Escreva um assembler e interpretador para a linguagem Araque.
+Seu programa deve receber o nome de arquivo como primeiro argumento
+da linha de comando, compilá-lo para uma representação interna binária
+(array de bytes), e executá-lo.
+
+    ./aravm programa.arac
+
+
+Atenção (!!!)
+-------------
+
+Preste atenção na definição dos labels.
+Eu simplifiquei pra deixar mais fácil do que fiz em sala.
+
+
+A Linguagem Araque
+------------------
+
+É uma linguagem de pilha, da máquina virtual de Arara.
+No trabalho após esse, servirá como alvo de compilação
+para a nossa linguagem original (Arara).
+
+Um programa Araque consiste de uma série de comandos,
+que podem ser precedidos por labels. Por exemplo:
+
+      NUMBER 5
+      STORE 0
+      LOAD 0
+      NUMBER 7
+      LT
+      JUMP_FALSE L0
+      NUMBER 10
+      PRINT
+      JUMP L1
+  L0: NUMBER 20
+      PRINT
+  L1: EXIT
+
+O programa acima é equivalente ao programa Arara abaixo:
+
+   x = 5
+   if x < 7 {
+       print 10
+   } else {
+       print 20
+   }
+
+Labels em Araque
+----------------
+
+Um label é um nome seguido de ":".
+Se quiser, pode exigir que os únicos nomes permitidos tem a forma "L(N)",
+onde N são números inteiros consecutivos. Assim não precisa de hash table.
+
+É permitido que um comando tenha mais de um label.
+Também é permitido que os labels fiquem em linhas separadas:
+
+   L0: L1:  NUMBER 10
+   
+   L3:
+   L4:
+       PRINT
+
+Comandos de Araque
+------------------
+
+A lista completa de comandos de Araque é:
+
+- EXIT
+- NUMBER [N]
+- ADD, SUB, MUL, DIV, POW
+- NOT, NEG
+- EQ, NEQ, LE, LEQ, GE, GEQ
+- LOAD [X], STORE [X]
+- POP, DUP
+- PRINT
+- JUMP [L], JUMP_TRUE[L], JUMP_FALSE[L]
+
+EXIT interrompe a execução do programa.
+NUMBER empilha o número N na pilha.
+ADD,SUB,etc: desempilham 2 valores empilham 1 resultado.
+EQ,NEQ: similar aos outros operadores binários
+LOAD [X]: lê o valor da variável de número X, e o empilha
+STORE [X]: desempilha um valor, e atribui na variável X
+POP: desempilha o valor no topo da pilha
+DUP: duplica o topo da pilha (empilha novamente)
+PRINT: desempilha um valor da pilha, e o imprime
+JUMP [L]: continua a execução no label L
+JUMP_TRUE [L]: desempilha um valor e faz o jump apenas se ele não for zero
+JUMP_FALSE [L]: desempilha um valor e faz o jump apenas se ele for zero.
+
+A máquina virtual
+-----------------
+
+Você deve compilar o seu programa para uma representação interna como array
+de bytes. Cada instrução tem 1 byte para o identificador da operação.
+Algumas operações tem bytes adicionais:
+
+- NUMBER: 4 bytes para o número
+- LOAD, STORE: 1 byte para o índice da variável
+- JUMP: 2 bytes para o deslocamento relativo (pode ser negativo)
+
+
+Caminho das pedras
+------------------
+
+A primeira etapa é o assembler, que converte a representação textual
+do arquivo Araque para a representação binária como array de bytes.
+Para tratar os labels, você precisará fazer duas passadas. Para cada
+comando da entrada, emita a sequência de bytes apropriadas. Os jumps
+necessitarão ode *backpatching*. Na primeira passada, deixe os dois bytes
+do deslocamento do jump em branco. Crie uma lista com todos os jumps
+que ainda falta preencher. Também anote o endereço dos labels, quando
+você encontrar o label. No final, agora que sabemos os endereços de todos
+os labels, podemos voltar e preencher o deslocamento de todos os jumps.
+
+A segunda etapa do programa é o interpretador/emulador da máquina
+virtual. O estado da máquina consiste das seguintes variáveis:
+   
+   - programa (array de bytes)
+   - program counter (um índice)
+   - pilha (array de inteiros)
+   - top (número de elementos da pilha)
+   
+Em cada iteração do loop principal pegamos a instrução apontada pelo
+program counter e fazemos um switch-case para executar o código que
+implementa essa operação.
+
+--------------------------------------------------------------------------------------------------------------------------
+
+Escreva um assembler e interpretador para a linguagem Araque em Python. Seu programa deve receber o nome de arquivo como primeiro argumento da linha de comando, compilá-lo para uma representação interna binária (array de bytes), e executá-lo.
+    ./aravm programa.arac
+
+Araque é uma linguagem de pilha, da máquina virtual de Arara. Um programa Araque consiste de uma série de comandos, que podem ser precedidos por labels. Por exemplo:
+
+      NUMBER 5
+      STORE 0
+      LOAD 0
+      NUMBER 7
+      LT
+      JUMP_FALSE L0
+      NUMBER 10
+      PRINT
+      JUMP L1
+  L0: NUMBER 20
+      PRINT
+  L1: EXIT
+
+O programa acima é equivalente ao programa Arara abaixo:
+
+   x = 5
+   if x < 7 {
+       print 10
+   } else {
+       print 20
+   }
+
+Um label é um nome seguido de ":". Pode exigir que os únicos nomes permitidos tem a forma "L(N)", onde N são números inteiros consecutivos. Assim não precisa de hash table.
+
+É permitido que um comando tenha mais de um label. Também é permitido que os labels fiquem em linhas separadas:
+
+   L0: L1:  NUMBER 10
+   
+   L3:
+   L4:
+       PRINT
+
+A lista completa de comandos de Araque é:
+- EXIT
+- NUMBER [N]
+- ADD, SUB, MUL, DIV, POW
+- NOT, NEG
+- EQ, NEQ, LE, LEQ, GE, GEQ
+- LOAD [X], STORE [X]
+- POP, DUP
+- PRINT
+- JUMP [L], JUMP_TRUE[L], JUMP_FALSE[L]
+
+Onde:
+EXIT: interrompe a execução do programa.
+NUMBER: empilha o número N na pilha.
+ADD,SUB,etc: desempilham 2 valores e empilham 1 resultado.
+EQ,NEQ: similar aos outros operadores binários
+LOAD [X]: lê o valor da variável de número X, e o empilha
+STORE [X]: desempilha um valor, e atribui na variável X
+POP: desempilha o valor no topo da pilha
+DUP: duplica o topo da pilha (empilha novamente)
+PRINT: desempilha um valor da pilha, e o imprime
+JUMP [L]: continua a execução no label L
+JUMP_TRUE [L]: desempilha um valor e faz o jump apenas se ele não for zero
+JUMP_FALSE [L]: desempilha um valor e faz o jump apenas se ele for zero.
+
+Você deve compilar o seu programa para uma representação interna como array de bytes. Cada instrução tem 1 byte para o identificador da operação.
+Algumas operações tem bytes adicionais:
+
+- NUMBER: 4 bytes para o número
+- LOAD, STORE: 1 byte para o índice da variável
+- JUMP: 2 bytes para o deslocamento relativo (pode ser negativo)
+
+A primeira etapa é o assembler, que converte a representação textual do arquivo Araque para a representação binária como array de bytes. Para tratar os labels, você precisará fazer duas passadas. Para cada comando da entrada, emita a sequência de bytes apropriadas. Os jumps necessitarão de *backpatching*. Na primeira passada, deixe os dois bytes do deslocamento do jump em branco. Crie uma lista com todos os jumps que ainda falta preencher. Também anote o endereço dos labels, quando você encontrar o label. No final, agora que sabemos os endereços de todos os labels, podemos voltar e preencher o deslocamento de todos os jumps.
+
+A segunda etapa do programa é o interpretador/emulador da máquina virtual. O estado da máquina consiste das seguintes variáveis:
+   
+   - programa (array de bytes)
+   - program counter (um índice)
+   - pilha (array de inteiros)
+   - top (número de elementos da pilha)
+   
+Em cada iteração do loop principal pegamos a instrução apontada pelo program counter e fazemos um switch-case para executar o código que implementa essa operação.

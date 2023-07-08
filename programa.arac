@@ -1,0 +1,12 @@
+NUMBER 5
+      STORE 0
+      LOAD 0
+      NUMBER 7
+      LE
+      JUMP_FALSE L0
+      NUMBER 10
+      PRINT
+      JUMP L1
+  L0: NUMBER 20
+      PRINT
+  L1: EXIT
