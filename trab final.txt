@@ -1,0 +1,162 @@
+Regras de entrega
+-----------------
+
+1) Entregue um arquivo chamado NomeSobrenome.zip, ou NomeNome.zip caso seja em dupla.
+2) Use ZIP. Não use RAR.
+3) Em todos os arquivos de código, insira um comentário com o seu nome completo.
+4) Inclua um arquivo README explicando como rodar o programa
+
+Tarefa
+------
+
+Neste trabalho final vocês devem entregar um compilador completo para a
+linguagem Arara. Este compilador consiste de dois programas, o compilador 
+Arara->Araque e a máquina virtual Araque.
+
+Providencie um script para o compilador, que deve se chamar "arara".
+Ele recebe na linha de comando o nome do arquivo de entrada (.ara)
+Ele imprime o código de bytecode na saída padrão.
+
+    arara programa.ara > programa.arac
+
+O programa da máquina virtual deve se chamar "aravm".
+Ele recebe na linha de comando o nome do arquivo Araque (.arac)
+Ele roda o programa e faz os prints na tela
+
+    aravm programa.arac
+
+
+O que tem de novo?
+------------------
+
+- Funções
+- Chamadas de função (tanto como expressão quanto como comando)
+- Fazer o compilador gerar Araque.
+
+
+Gramática de Arara
+------------------
+
+    Programa -> Funcs
+   
+    # Lista de funções (zero ou mais, sem separador)
+    Funcs -> {FuncDef}
+   
+    # Lista de nomes (zero ou mais, separado por vírgula)
+    Args -> 
+    Args -> NOME {',' NOME}
+   
+    # Lista de expressões (zero ou mais, separadas por vírgula)
+    Exps -> 
+    Exps -> Exp {',' Exp} 
+   
+    # Lista de comandos (zero ou mais, sem separador)
+    Cmds -> {Cmd}   
+   
+    # Função
+    FuncDef -> 'fun' NOME '(' Args ')' Bloco
+   
+    # Comandos
+    Bloco -> '{' Cmds '}'
+    
+    Cmd -> print Exp ';'
+    Cmd -> var NOME '=' Exp ';'   # declaração
+    Cmd -> NOME '=' Exp;          # atribuição
+    Cmd -> while Exp Bloco
+    Cmd -> if Exp Bloco Elses
+    Cmd -> FunCall ';'
+    
+    Elses ->
+    Elses -> else Bloco
+    Elses -> elif Exp Bloco Elses
+
+    Exp -> NUMERO
+    Exp -> NOME
+    Exp -> '(' Exp ')'
+    Exp -> FunCall
+    Exp -> UNOP Exp
+    Exp -> Exp BINOP Exp
+   
+    FunCall -> NOME '(' Exps ')'
+
+   
+Os operadores unários são:
+
+   - Negação aritmética: '-'
+   - Negação booleana: not
+
+Os operadores binários são:
+
+   * aritméticos: + - * / ^
+   * comparações: == != < > <= >=
+   * booleanos: and or
+   
+A precedência dos operadores deve ser:
+
+   - or
+   - and
+   - comparações
+   - soma e subtração
+   - multiplicação e divisão
+   - operadores unários (negação)
+   - exponenciação
+
+Todos os operadores binários devem ser associativos à esquerda, exceto a exponenciação que deve ser associativa à direita.
+
+
+A linguagem Araque
+------------------
+
+Um arquivo Araque contém uma sequência de definições de função.
+Uma delas é a main. Pode fazer de duas formas: a função 0 ou a última do arquivo.
+
+O começo de cada função tem uma diretiva FUNCTION que diz:
+- O número da função
+- A quantidade de argumentos
+- A quantidade de variáveis locais (sem contar os argumentos)
+
+    FUNCTION 1 2 0 
+
+O corpo da função é uma sequência de comandos.
+Um comando pode ser precedido por um ou mais labels como "L99:"
+A lista completa de comandos de Araque é:
+
+- EXIT
+- NUMBER [N]
+- ADD, SUB, MUL, DIV, POW
+- NOT, NEG
+- EQ, NEQ, LE, LEQ, GE, GEQ
+- LOAD [X], STORE [X]
+- POP, DUP
+- PRINT
+- JUMP [L], JUMP_TRUE[L], JUMP_FALSE[L]
+- CALL [F]
+- RETURN
+
+EXIT interrompe a execução do programa.
+NUMBER empilha o número N na pilha.
+ADD,SUB,etc: desempilham 2 valores empilham 1 resultado.
+EQ,NEQ: similar aos outros operadores binários
+LOAD [X]: lê o valor da variável de número X, e o empilha
+STORE [X]: desempilha um valor, e atribui na variável X
+POP: desempilha o valor no topo da pilha
+DUP: duplica o topo da pilha (empilha novamente)
+PRINT: desempilha um valor da pilha, e o imprime
+JUMP [L]: continua a execução no label L
+JUMP_TRUE [L]: desempilha um valor e faz o jump apenas se ele não for zero
+JUMP_FALSE [L]: desempilha um valor e faz o jump apenas se ele for zero.
+CALL[N]:
+  Empilha as variáveis locais (com valor inicial zero)
+  Adiciona um novo stack frame,
+  Pula para o início da função
+RETURN:
+  Desempilha todas os argumentos e variáveis locais
+  Pula para a próxima instrução da função de fora.
+  
+
+A Máquina Virtual
+-----------------
+
+Preferencialmente deve ser escrita em C.
+Pode codificar o bytecode com codificação variável (número de bytes diferente para cada instr)
+ou codificação uniforme (mais fácil; toda instrução é uma struct tag/parametro).
